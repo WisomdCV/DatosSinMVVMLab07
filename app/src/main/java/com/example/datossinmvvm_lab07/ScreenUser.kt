@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -31,15 +32,13 @@ import kotlinx.coroutines.launch
 fun ScreenUser(modifier: Modifier) {
     val context = LocalContext.current
     var db: UserDatabase
-    var id        by remember { mutableStateOf("") }
+    var id by remember { mutableStateOf("") }
     var firstName by remember { mutableStateOf("") }
-    var lastName  by remember { mutableStateOf("") }
-    var dataUser  = remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+    var dataUser = remember { mutableStateOf("") }
 
     db = crearDatabase(context)
-
     val dao = db.userDao()
-
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
@@ -47,6 +46,7 @@ fun ScreenUser(modifier: Modifier) {
             TopAppBar(
                 title = { Text("Usuarios") },
                 actions = {
+                    // Botón para agregar usuario
                     Button(
                         onClick = {
                             val user = User(0, firstName, lastName)
@@ -55,10 +55,13 @@ fun ScreenUser(modifier: Modifier) {
                             }
                             firstName = ""
                             lastName = ""
-                        }
+                        },
+                        modifier = Modifier.padding(end = 8.dp)
                     ) {
-                        Text("Agregar Usuario", fontSize = 16.sp)
+                        Text("Agregar Usuario", fontSize = 14.sp)
                     }
+
+                    // Botón para listar usuarios
                     Button(
                         onClick = {
                             coroutineScope.launch {
@@ -67,7 +70,7 @@ fun ScreenUser(modifier: Modifier) {
                             }
                         }
                     ) {
-                        Text("Listar Usuarios", fontSize = 16.sp)
+                        Text("Listar Usuarios", fontSize = 14.sp)
                     }
                 }
             )
@@ -79,39 +82,67 @@ fun ScreenUser(modifier: Modifier) {
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-            Spacer(Modifier.height(50.dp))
+            Spacer(Modifier.height(20.dp))
+
+            // Campo de ID (solo lectura)
             TextField(
                 value = id,
                 onValueChange = { id = it },
                 label = { Text("ID (solo lectura)") },
                 readOnly = true,
-                singleLine = true
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
             )
+
+            // Campo de First Name
             TextField(
                 value = firstName,
                 onValueChange = { firstName = it },
-                label = { Text("First Name: ") },
-                singleLine = true
+                label = { Text("First Name:") },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
             )
+
+            // Campo de Last Name
             TextField(
                 value = lastName,
                 onValueChange = { lastName = it },
                 label = { Text("Last Name:") },
-                singleLine = true
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
             )
+
+            Spacer(Modifier.height(24.dp))
+
+            // Botón para eliminar último usuario
             Button(
                 onClick = {
                     coroutineScope.launch {
                         EliminarUltimoUsuario(dao = dao)
-                        val data = getUsers(dao = dao) // Actualiza la lista después de eliminar
+                        val data = getUsers(dao = dao)
                         dataUser.value = data
                     }
-                }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
             ) {
                 Text("Eliminar Último Usuario", fontSize = 16.sp)
             }
+
+            Spacer(Modifier.height(24.dp))
+
+            // Mostrar lista de usuarios
             Text(
-                text = dataUser.value, fontSize = 20.sp
+                text = dataUser.value,
+                fontSize = 20.sp,
+                modifier = Modifier.padding(vertical = 8.dp)
             )
         }
     }
@@ -144,7 +175,7 @@ suspend fun getUsers(dao: UserDao): String {
     return rpta
 }
 
-suspend fun AgregarUsuario(user: User, dao: UserDao): Unit {
+suspend fun AgregarUsuario(user: User, dao: UserDao) {
     try {
         dao.insert(user)
     } catch (e: Exception) {
